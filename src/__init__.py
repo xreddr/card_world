@@ -1,67 +1,73 @@
 from src import chara_sheet
+from texttable import Texttable
 import random
 
 class Game():
     def __init__(self):
-        self.party_deck = []
-        self.stage_deck = []
+        self.party_deck = Deck()
+        self.stage_deck = Deck()
 
     def game_start(self):
         n = 1
         while n <= 10:
             if n % 4 == 0:
-                self.stage_deck.append(Event('Respite', 'Rest and restore some health', restore))
+                self.stage_deck.cards.append(Event('Respite', 'Rest and restore some health', restore))
             else:
-                self.stage_deck.append(Chara('Zombie', 'Undead', 25, 25, 8, 8, 8, 8, 1))
+                self.stage_deck.cards.append(Chara('Zombie', 'Undead', 25, 25, 8, 8, 8, 8, 1))
             n += 1
-        self.party_deck.append(Chara('Harper', 'Girl', 100, 100, 10, 10, 10, 10, 0))
-        print(self.party_deck[0].name)
-        for card in self.stage_deck:
-            print(card.name, self.stage_deck.index(card))
+        self.party_deck.cards.append(Chara('Harper', 'Girl', 100, 100, 10, 10, 10, 10, 0))
+        self.party_deck.cards.append(Chara('Alexa', 'Girl', 100, 100, 10, 10, 10, 10, 0))
+
+        print(self.party_deck.cards[0].name)
+        for card in self.stage_deck.cards:
+            print(card.name, self.stage_deck.cards.index(card))
         self.game_loop()
 
     def game_loop(self):
-        # Select Chara from party deck
-        player = self.party_deck[0]
+        player = None
+        while player == None:
+            # Select Player
+            player = self.select_chara()
 
-        # Draw cards from stage deck
-        while len(self.stage_deck) > 0 and player.hp > 0:
-            for card in self.stage_deck:
-                # Draw phase
-                print(f'\nCards left in stage: {len(self.stage_deck)}')
-                input("You draw a card...")
-                # for card in self.stage_deck:
-                #     print(card.name)
+            # Play through stage deck
+            player = self.play_stage(player, self.stage_deck.cards)
 
-                if isinstance(card, Chara):
-                    # Enter battle phase
-                    enemy = card
-                    print(f'\nYou encountered a {card.name}!')
-                    while enemy.hp > 0 and player.hp > 0:
-                        player.hp, enemy.hp = self.battle_phase(player, enemy)
-                        if enemy.hp <=0:
-                            player.cp += enemy.cp
-                            input(f'\n{player.name} has defeted {enemy.name}')
-                        elif player.hp <= 0:
-                            input(f"\n{player.name} has fallen")
 
-                elif isinstance(card, Event):
-                    # Event 
-                    print(f'\n{card.desc}')
-                    card.activate(player, 10)
-
-                self.stage_deck.pop(self.stage_deck.index(card))
-
-            if player.hp > 0:
-                print("Congrats!")
+            if player.hp <= 0:
+                print(f'\n{player.name} has been defeated')
+                self.party_deck.cards.pop(self.party_deck.cards.index(player))
+                player = None
 
         # Epilogue, Replay
         print("The End")
+        self.game_over()
+
+    def play_stage(self, player, stage):
+        while len(stage) > 0 and player.hp > 0:
+            print(f'\nPlayer CPs: {player.cp}')
+            print(f'Cards in Stage: {len(stage)}')
+            input('You draw a card...')
+            card = stage[0]
+            if isinstance(card, Chara):
+                enemy = card
+                print(f'\nYou drew a Monster {enemy.name}!')
+                player.hp = self.battle_phase(player, enemy)
+            elif isinstance(card, Event):
+                print(f'\nYou drew an Event: {card.name}, {card.desc}')
+                card.activate(player, 10)
+            stage.pop(stage.index(card))
+
+        return player   
 
     def battle_phase(self, player, enemy):
-            print(f'Player HP: {player.hp}, Enemy HP: {enemy.hp}')
+        while player.hp > 0 and enemy.hp > 0:
             player_input = None
             while player_input is None:
+                p_card = Texttable()
+                p_card.add_rows([[f'{player.name} HP: {player.hp}', f'{enemy.name} HP: {enemy.hp}'],
+                                 [f'SHDL:{player.shield} SCRL:{player.scroll} SWRD:{player.sword}', f'SHDL:{enemy.shield} SCRL:{enemy.scroll} SWRD:{enemy.sword}']])
+                print()
+                print(p_card.draw())
                 inputs = ['1', '2', '3']
                 print("1) Shield")
                 print('2) Scroll')
@@ -95,22 +101,24 @@ class Game():
                 print(f'\nYou gave {enemy.name} {hit} points of damage!')
 
             if player_input == '1':
-                player_stat = player.shield
-                if com_entry == '1':
-                    print("\nDraw!")
-                if com_entry == '2':
-                    take_damage(player_stat, com_stat)
-                if com_entry == '3':
-                    give_damage(player_stat, com_stat)
+                enemy.hp -= 25
+                # player_stat = player.shield
+                # if com_entry == '1':
+                #     print("\nDraw!")
+                # if com_entry == '2':
+                #     take_damage(player_stat, com_stat)
+                # if com_entry == '3':
+                #     give_damage(player_stat, com_stat)
 
             if player_input == '2':
-                player_stat = player.scroll
-                if com_entry == '1':
-                    give_damage(player_stat, com_stat)                     
-                if com_entry == '2':
-                    print("\nDraw!")
-                if com_entry == '3':
-                    take_damage(player_stat, com_stat)
+                player.hp -= 50
+                # player_stat = player.scroll
+                # if com_entry == '1':
+                #     give_damage(player_stat, com_stat)                     
+                # if com_entry == '2':
+                #     print("\nDraw!")
+                # if com_entry == '3':
+                #     take_damage(player_stat, com_stat)
 
             if player_input == '3':
                 player_stat = player.sword
@@ -120,24 +128,69 @@ class Game():
                     give_damage(player_stat, com_stat)                     
                 if com_entry == '3':
                     print("\nDraw!")
-            
-            return player.hp, enemy.hp
-            
+
+        if enemy.hp <= 0:
+            player.cp += enemy.cp
+            input(f'\nYou defeated {enemy.name}. You earned {enemy.cp} CPs')
+
+        return player.hp
+    
+    def select_chara(self):
+        # Console Interface Menu
+        selected = None
+        if len(self.party_deck.cards) == 0:
+            self.game_over()
+        deck = self.party_deck.cards
+        while selected == None:
+            print(f'\nSelect Your Character')
+            for i in range(len(deck)):
+                print(f'{i+1}) {deck[i].name}, {deck[i].desc}')
+            selection = input('Choose an option by number')
+            try:
+                selection = int(selection)
+                if selection-1 in range(len(deck)):
+                    selected = deck[selection-1]
+            except ValueError:
+                pass
+
+        return selected
+    
+    def game_over(self):
+        print(f'Your Party has Fallen')
+        self.party_deck.cards.clear()
+        self.stage_deck.cards.clear()
+        print('1) Continue')
+        print('2) Quit')
+        selected = int(input('What will you do?'))
+        if selected == 1:
+            self.game_start()
+        if selected == 2:
+            quit()
+
 
 class Deck(object):
     def __init__(self):
         self.cards = []
+    def draw_top(self):
+        return self.cards.pop(0)
+    def draw_bottom(self):
+        return self.cards.pop()
+    def shuffle(self):
+        return random.shuffle(self.cards)
 
 class Card(object):
     def __init__(self, name, desc):
         self.name = name 
         self.desc = desc
+    def read(self):
+        print(f'{self.name}\n{self.desc}')
 
 class Chara(Card):
     def __init__(self, name, desc, hp, sp, shield, scroll, sword, speed, cp):
         super().__init__(name, desc)
         self.name = name
         self.hp = hp
+        self.max_hp = hp
         self.sp = sp
         self.shield = shield
         self.scroll = scroll
@@ -156,5 +209,3 @@ def restore(player, amount):
     player.hp += amount
     input(f'\n{player.name} has restored {amount} hp!')
     return player.hp
-
-
