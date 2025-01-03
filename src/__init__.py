@@ -8,15 +8,8 @@ class Game():
         self.stage_deck = Deck()
 
     def game_start(self):
-        n = 1
-        while n <= 10:
-            if n % 4 == 0:
-                self.stage_deck.cards.append(Event('Respite', 'Rest and restore some health', restore))
-            else:
-                self.stage_deck.cards.append(Chara(zombie))
-            n += 1
-        self.party_deck.cards.append(Chara(harper))
-        self.party_deck.cards.append(Chara(alexa))
+        self.party_deck.cards.append(Chara(chara_sheet.harper))
+        self.party_deck.cards.append(Chara(chara_sheet.alexa))
 
         print(self.party_deck.cards[0].name)
         for card in self.stage_deck.cards:
@@ -30,6 +23,7 @@ class Game():
             player = self.select_chara()
 
             # Play through stage deck
+            self.build_stage()
             player = self.play_stage(player, self.stage_deck.cards)
 
 
@@ -38,9 +32,24 @@ class Game():
                 self.party_deck.cards.pop(self.party_deck.cards.index(player))
                 player = None
 
+            if len(self.stage_deck.cards) == 0:
+                for card in self.party_deck.cards:
+                    print(card.read(), card.hp, card.cp)
+                input("Stage Complete")
+                player = None
+
         # Epilogue, Replay
-        print("The End")
-        self.game_over()
+
+
+    def build_stage(self):
+        n = 1
+        while n <= 10:
+            if n % 4 == 0:
+                self.stage_deck.cards.append(Event('Respite', 'Rest and restore some health', restore))
+            else:
+                self.stage_deck.cards.append(Chara(chara_sheet.zombie))
+            n += 1
+        return self
 
     def play_stage(self, player, stage):
         while len(stage) > 0 and player.hp > 0:
@@ -50,7 +59,7 @@ class Game():
             card = stage[0]
             if isinstance(card, Chara):
                 enemy = card
-                print(f'\nYou drew a Monster {enemy.name}!')
+                print(f'\nYou drew a Monster: {enemy.name}, {enemy.desc}!')
                 player.hp = self.battle_phase(player, enemy)
             elif isinstance(card, Event):
                 print(f'\nYou drew an Event: {card.name}, {card.desc}')
@@ -63,13 +72,12 @@ class Game():
         while player.hp > 0 and enemy.hp > 0:
             player_input = None
             while player_input is None:
-                p_card = Texttable()
-                p_card.add_rows([
+                battle_grid = Texttable()
+                battle_grid.add_rows([
                     [player.name, enemy.name],
                     [f'HP: {player.hp}/{player.max_hp}', f'HP: {enemy.hp}/{enemy.max_hp}']
                     ])
-                print()
-                print(p_card.draw())
+                print(battle_grid.draw())
                 inputs = ['1', '2', '3']
                 print(f"1) {player.shield['name']}")
                 print(f'2) {player.scroll["name"]}')
@@ -92,7 +100,7 @@ class Game():
                 elif com_stat < player_stat:
                     hit = com_stat - (player_stat - com_stat)
                 player.hp  -= hit
-                print(f'\nYou took {hit} points of damage!')
+                input(f'\nYou took {hit} points of damage!')
 
             def give_damage(player_stat, com_stat):
                 if player_stat >= com_stat:
@@ -100,7 +108,10 @@ class Game():
                 elif player_stat < com_stat:
                     hit = player_stat - (com_stat - player_stat)
                 enemy.hp -= hit
-                print(f'\nYou gave {enemy.name} {hit} points of damage!')
+                input(f'\nYou gave {enemy.name} {hit} points of damage!')
+
+            def draw():
+                input(f'\nYour moves were evenly matched')
 
             if player_input == '1':
                 enemy.hp -= 25
@@ -129,7 +140,7 @@ class Game():
                 if com_entry == '2':
                     give_damage(player_stat, com_stat)                     
                 if com_entry == '3':
-                    print("\nDraw!")
+                    draw()
 
         if enemy.hp <= 0:
             player.cp += enemy.cp
@@ -220,68 +231,3 @@ def restore(player, amount):
     input(f'\n{player.name} has restored {amount} hp!')
     return player.hp
 
-harper = {
-    "name" : "Harper",
-    "desc" : "Pink haired girl",
-    "hp" : 100,
-    "speed" : 10,
-    "cp" : 0,
-    "moves" : {
-        "shield" : {
-            "name" : "Shield",
-            "stat" : 10
-        },
-        "scroll" : {
-            "name" : "Scroll",
-            "stat" : 10
-        },
-        "sword" : {
-            "name" : "Sword",
-            "stat" : 10
-        }
-    }
-}
-
-alexa = {
-    "name" : "Alexa",
-    "desc" : "Blonde haired girl",
-    "hp" : 100,
-    "speed" : 10,
-    "cp" : 0,
-    "moves" : {
-        "shield" : {
-            "name" : "Buckler",
-            "stat" : 10
-        },
-        "scroll" : {
-            "name" : "Enchantment",
-            "stat" : 10
-        },
-        "sword" : {
-            "name" : "Dagger",
-            "stat" : 10
-        }
-    }
-}
-
-zombie = {
-    "name" : "Zombie",
-    "desc" : "Undead menace",
-    "hp" : 25,
-    "speed" : 8,
-    "cp" : 1,
-    "moves" : {
-        "shield" : {
-            "name" : "Bones",
-            "stat" : 8
-        },
-        "scroll" : {
-            "name" : "Swarms",
-            "stat" : 8
-        },
-        "sword" : {
-            "name" : "Bite",
-            "stat" : 8
-        }
-    }
-}
