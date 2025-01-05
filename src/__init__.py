@@ -6,6 +6,7 @@ class Game():
     def __init__(self):
         self.party_deck = Deck()
         self.stage_deck = Deck()
+        self.player = None
 
     def game_start(self):
         self.party_deck.cards.append(Chara(chara_sheet.harper))
@@ -17,56 +18,80 @@ class Game():
         self.game_loop()
 
     def game_loop(self):
-        player = None
-        while player == None:
-            # Select Player
-            player = self.select_chara()
+        self.player = None
+        while self.player == None:
+            self.select_chara()
 
-            # Play through stage deck
             self.build_stage()
-            player = self.play_stage(player, self.stage_deck.cards)
 
+            self.play_stage()
 
-            if player.hp <= 0:
-                print(f'\n{player.name} has been defeated')
-                self.party_deck.cards.pop(self.party_deck.cards.index(player))
-                player = None
+            if self.player.hp <= 0:
+                print(f'\n{self.player.name} has been defeated')
+                self.party_deck.cards.pop(self.party_deck.cards.index(self.player))
+                self.player = None
 
             if len(self.stage_deck.cards) == 0:
                 for card in self.party_deck.cards:
-                    print(card.read(), card.hp, card.cp)
+                    print(card.read())
                 input("Stage Complete")
-                player = None
-
-        # Epilogue, Replay
-
+                self.player = None
 
     def build_stage(self):
-        n = 1
-        while n <= 10:
-            if n % 4 == 0:
-                self.stage_deck.cards.append(Event('Respite', 'Rest and restore some health', restore))
-            else:
-                self.stage_deck.cards.append(Chara(chara_sheet.zombie))
-            n += 1
+        if len(self.stage_deck.cards) == 0:
+            n = 1
+            while n <= 10:
+                if n % 4 == 0:
+                    self.stage_deck.cards.append(Event('Respite', 'Rest and restore some health', rester))
+                else:
+                    self.stage_deck.cards.append(Chara(chara_sheet.zombie))
+                n += 1
         return self
 
-    def play_stage(self, player, stage):
-        while len(stage) > 0 and player.hp > 0:
-            print(f'\nPlayer CPs: {player.cp}')
-            print(f'Cards in Stage: {len(stage)}')
+    def play_stage(self):
+        while len(self.stage_deck.cards) > 0 and self.player.hp > 0:
+            self.camp()
+            print(f'\nPlayer CPs: {self.player.cp}')
+            print(f'Cards in Stage: {len(self.stage_deck.cards)}')
             input('You draw a card...')
-            card = stage[0]
+            card = self.stage_deck.cards[0]
             if isinstance(card, Chara):
                 enemy = card
-                print(f'\nYou drew a Monster: {enemy.name}, {enemy.desc}!')
-                player.hp = self.battle_phase(player, enemy)
+                input(f'\nYou drew a Monster: {enemy.name}, {enemy.desc}!')
+                self.player.hp, enemy.hp = self.battle_phase(self.player, enemy)
+                if enemy.hp <= 0:
+                    self.stage_deck.cards.pop(self.stage_deck.cards.index(card))
             elif isinstance(card, Event):
-                print(f'\nYou drew an Event: {card.name}, {card.desc}')
-                card.activate(player, 10)
-            stage.pop(stage.index(card))
+                input(f'\nYou drew an Event: {card.name}, {card.desc}')
+                card.activate(self)
+                self.stage_deck.cards.pop(self.stage_deck.cards.index(card))
 
-        return player   
+        return self   
+    
+    def camp(self):
+        while self.player.cp > 0:
+            print(f"\n{self.player.name} has {self.player.cp} CPs to spend.")
+            print(f"1) {self.player.shield['name']}: {self.player.shield['stat']}")
+            print(f"2) {self.player.scroll['name']}: {self.player.scroll['stat']}")
+            print(f"3) {self.player.sword['name']}: {self.player.sword['stat']}")
+            print(f"4) None for now")
+            raw = input('Select a stat to increase')
+            raw_int = int(raw)
+            if raw_int == 1:
+                self.player.cp -= 1
+                self.player.shield['stat'] += 1
+            elif raw_int == 2:
+                self.player.cp -= 1
+                self.player.scroll['stat'] += 1
+            elif raw_int == 3:
+                self.player.cp -= 1
+                self.player.sword['stat'] += 1
+            elif raw_int == 4:
+                break
+        print(f"{self.player.shield['name']}: {self.player.shield['stat']}")
+        print(f"{self.player.scroll['name']}: {self.player.scroll['stat']}")
+        print(f"{self.player.sword['name']}: {self.player.sword['stat']}")
+        return self    
 
     def battle_phase(self, player, enemy):
         while player.hp > 0 and enemy.hp > 0:
@@ -79,9 +104,9 @@ class Game():
                     ])
                 print(battle_grid.draw())
                 inputs = ['1', '2', '3']
-                print(f"1) {player.shield['name']}")
-                print(f'2) {player.scroll["name"]}')
-                print(f'3) {player.sword["name"]}')
+                print(f"1) {player.shield['name']}: {player.shield['stat']}")
+                print(f'2) {player.scroll["name"]}: {player.scroll["stat"]}')
+                print(f'3) {player.sword["name"]}: {player.sword["stat"]}')
                 entry = input("Select a number:")
                 if entry in inputs:
                     player_input = entry
@@ -99,6 +124,8 @@ class Game():
                     hit= com_stat
                 elif com_stat < player_stat:
                     hit = com_stat - (player_stat - com_stat)
+                if hit <= 0:
+                    hit = 1
                 player.hp  -= hit
                 input(f'\nYou took {hit} points of damage!')
 
@@ -107,6 +134,8 @@ class Game():
                     hit = player_stat
                 elif player_stat < com_stat:
                     hit = player_stat - (com_stat - player_stat)
+                if hit <= 0:
+                    hit = 1
                 enemy.hp -= hit
                 input(f'\nYou gave {enemy.name} {hit} points of damage!')
 
@@ -146,7 +175,7 @@ class Game():
             player.cp += enemy.cp
             input(f'\nYou defeated {enemy.name}. You earned {enemy.cp} CPs')
 
-        return player.hp
+        return player.hp, enemy.hp
     
     def select_chara(self):
         # Console Interface Menu
@@ -163,10 +192,11 @@ class Game():
                 selection = int(selection)
                 if selection-1 in range(len(deck)):
                     selected = deck[selection-1]
+                    self.player = selected
             except ValueError:
                 pass
 
-        return selected
+        return self
     
     def game_over(self):
         print(f'Your Party has Fallen')
@@ -230,4 +260,9 @@ def restore(player, amount):
     player.hp += amount
     input(f'\n{player.name} has restored {amount} hp!')
     return player.hp
+
+def rester(self):
+    self.player.hp += 10
+    input(f'\n{self.player.name} has restored 10 hp!')
+
 
