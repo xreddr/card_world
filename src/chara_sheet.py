@@ -3,6 +3,7 @@ harper = {
     "name" : "Harper",
     "desc" : "Pink haired girl",
     "hp" : 100,
+    "sp" : 100,
     "speed" : 10,
     "cp" : 0,
     "moves" : {
@@ -25,6 +26,7 @@ alexa = {
     "name" : "Alexa",
     "desc" : "Blonde haired girl",
     "hp" : 100,
+    "sp" : 100,
     "speed" : 10,
     "cp" : 0,
     "moves" : {
@@ -47,6 +49,7 @@ zombie = {
     "name" : "Zombie",
     "desc" : "Undead menace",
     "hp" : 25,
+    "sp" : 100,
     "speed" : 8,
     "cp" : 1,
     "moves" : {

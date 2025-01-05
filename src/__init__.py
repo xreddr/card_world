@@ -102,7 +102,8 @@ class Game():
                     [player.name, enemy.name],
                     [f'HP: {player.hp}/{player.max_hp}', f'HP: {enemy.hp}/{enemy.max_hp}']
                     ])
-                print(battle_grid.draw())
+                # print(battle_grid.draw())
+                self.print_cards([player, enemy])
                 inputs = ['1', '2', '3']
                 print(f"1) {player.shield['name']}: {player.shield['stat']}")
                 print(f'2) {player.scroll["name"]}: {player.scroll["stat"]}')
@@ -123,7 +124,7 @@ class Game():
                 if com_stat >= player_stat:
                     hit= com_stat
                 elif com_stat < player_stat:
-                    hit = com_stat - (player_stat - com_stat)
+                    hit = com_stat - (round((player_stat - com_stat)/2))
                 if hit <= 0:
                     hit = 1
                 player.hp  -= hit
@@ -133,7 +134,7 @@ class Game():
                 if player_stat >= com_stat:
                     hit = player_stat
                 elif player_stat < com_stat:
-                    hit = player_stat - (com_stat - player_stat)
+                    hit = player_stat - (round((com_stat - player_stat)/2))
                 if hit <= 0:
                     hit = 1
                 enemy.hp -= hit
@@ -198,6 +199,26 @@ class Game():
 
         return self
     
+    def print_cards(self, cards=list):
+        card_names = []
+        card_hps = []
+        card_sps = []
+        card_speeds = []
+        card_move1s = []
+        card_move2s = []
+        card_move3s = []
+        for card in cards:
+            card_names.append(card.name)
+            card_hps.append(f'HP: {(card.hp, card.max_hp)}')
+            card_sps.append(f'SP: {(card.sp, card.max_sp)}')
+            card_speeds.append(f'Speed: {card.speed}')
+            card_move1s.append(f'{card.shield["name"]}: {card.shield["stat"]}')
+            card_move2s.append(f'{card.scroll["name"]}: {card.scroll["stat"]}')
+            card_move3s.append(f'{card.sword["name"]}: {card.sword["stat"]}')
+        sheet = Texttable()
+        sheet.add_rows([card_names, card_hps, card_sps, card_speeds, card_move1s, card_move2s, card_move3s])
+        print(sheet.draw())
+
     def game_over(self):
         print(f'Your Party has Fallen')
         self.party_deck.cards.clear()
@@ -234,6 +255,8 @@ class Chara(Card):
         self.name = chara_sheet['name']
         self.hp = chara_sheet['hp']
         self.max_hp = chara_sheet['hp']
+        self.sp = chara_sheet['sp']
+        self.max_sp = chara_sheet['sp']
         self.shield = {
             "name" : chara_sheet['moves']['shield']['name'], 
             "stat" : chara_sheet['moves']['shield']['stat']
