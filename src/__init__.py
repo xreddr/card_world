@@ -185,6 +185,7 @@ class Game():
             self.game_over()
         deck = self.party_deck.cards
         while selected == None:
+            self.print_cards(self.party_deck.cards)
             print(f'\nSelect Your Character')
             for i in range(len(deck)):
                 print(f'{i+1}) {deck[i].name}, {deck[i].desc}')
