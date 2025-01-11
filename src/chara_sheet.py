@@ -64,3 +64,28 @@ zombie = {
         }
     }
 }
+
+bat = {
+    "name" : "Bat",
+    "desc" : "Flying nusance",
+    "hp" : 15,
+    "speed" : 13,
+    "cp" : 1,
+    "moves" : {
+        "shield" : {
+            "name" : "Scratch",
+            "stat" : 6
+        },
+        "scroll" : {
+            "name" : "Bite",
+            "stat" : 6
+        },
+        "sword" : {
+            "name" : "Screach",
+            "stat" : 6
+        }
+    }
+}
+
+heros = [harper, alexa]
+mobs = [zombie, bat]
