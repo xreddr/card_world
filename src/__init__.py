@@ -9,8 +9,10 @@ class Game():
         self.player = None
 
     def game_start(self):
-        self.party_deck.cards.append(Chara(chara_sheet.harper))
-        self.party_deck.cards.append(Chara(chara_sheet.alexa))
+        for hero in chara_sheet.heros:
+            self.party_deck.cards.append(Chara(hero))
+        # self.party_deck.cards.append(Chara(chara_sheet.harper))
+        # self.party_deck.cards.append(Chara(chara_sheet.alexa))
 
         print(self.party_deck.cards[0].name)
         for card in self.stage_deck.cards:
@@ -44,7 +46,7 @@ class Game():
                 if n % 4 == 0:
                     self.stage_deck.cards.append(Event('Respite', 'Rest and restore some health', rester))
                 else:
-                    self.stage_deck.cards.append(Chara(chara_sheet.zombie))
+                    self.stage_deck.cards.append(Chara(random.choice(chara_sheet.mobs)))
                 n += 1
         return self
 
