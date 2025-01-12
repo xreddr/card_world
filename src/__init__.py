@@ -1,6 +1,6 @@
-from src import chara_sheet
+from src import chara_sheet, images
 from texttable import Texttable
-import random
+import random, os
 
 class Game():
     def __init__(self):
@@ -9,17 +9,17 @@ class Game():
         self.player = None
 
     def game_start(self):
+        '''Takes self. calls self.game_loop().'''
+        # Logic No Inputs
+        # Loads party_deck
         for hero in chara_sheet.heros:
             self.party_deck.cards.append(Chara(hero))
-        # self.party_deck.cards.append(Chara(chara_sheet.harper))
-        # self.party_deck.cards.append(Chara(chara_sheet.alexa))
-
-        print(self.party_deck.cards[0].name)
-        for card in self.stage_deck.cards:
-            print(card.name, self.stage_deck.cards.index(card))
+        # Begins game_loop()
         self.game_loop()
 
     def game_loop(self):
+        '''Takes self. Continues until force quite.'''
+        # Logic No Inputs
         self.player = None
         while self.player == None:
             self.select_chara()
@@ -34,12 +34,15 @@ class Game():
                 self.player = None
 
             if len(self.stage_deck.cards) == 0:
-                for card in self.party_deck.cards:
-                    print(card.read())
+                Scene.clear()
+                self.print_cards(self.party_deck.cards)
                 input("Stage Complete")
                 self.player = None
 
     def build_stage(self):
+        '''Takes self. Modifies self.stage_deck. Returns self'''
+        # Logic No Inputs
+        # Only builds stage if last stage is completed
         if len(self.stage_deck.cards) == 0:
             n = 1
             while n <= 10:
@@ -51,48 +54,63 @@ class Game():
         return self
 
     def play_stage(self):
+        '''Takes self. Returns self'''
+        # Logic
+        # Scenes
         while len(self.stage_deck.cards) > 0 and self.player.hp > 0:
-            self.camp()
-            print(f'\nPlayer CPs: {self.player.cp}')
+            # Remove to scene function
+            Scene.clear()
+            print(self.player.image)
+            print(f'\n{self.player.name} HP: {self.player.hp}/{self.player.max_hp}')
+            print(f'Player CPs: {self.player.cp}')
             print(f'Cards in Stage: {len(self.stage_deck.cards)}')
             input('You draw a card...')
             card = self.stage_deck.cards[0]
             if isinstance(card, Chara):
                 enemy = card
+                # Remove to scene function
+                Scene.clear()
+                print(enemy.image)
                 input(f'\nYou drew a Monster: {enemy.name}, {enemy.desc}!')
                 self.player.hp, enemy.hp = self.battle_phase(self.player, enemy)
                 if enemy.hp <= 0:
                     self.stage_deck.cards.pop(self.stage_deck.cards.index(card))
             elif isinstance(card, Event):
+                # Remove to scnee function
                 input(f'\nYou drew an Event: {card.name}, {card.desc}')
                 card.activate(self)
                 self.stage_deck.cards.pop(self.stage_deck.cards.index(card))
+            
+            self.camp()
 
         return self   
     
     def camp(self):
+        '''Takes self. Modifies self.player.cp. Returns self.'''
+        # Logic
+        # Scene
+        # Player Input
         while self.player.cp > 0:
+            Scene.clear()
+            print(images.camp_image)
             print(f"\n{self.player.name} has {self.player.cp} CPs to spend.")
             print(f"1) {self.player.shield['name']}: {self.player.shield['stat']}")
             print(f"2) {self.player.scroll['name']}: {self.player.scroll['stat']}")
             print(f"3) {self.player.sword['name']}: {self.player.sword['stat']}")
             print(f"4) None for now")
-            raw = input('Select a stat to increase')
-            raw_int = int(raw)
-            if raw_int == 1:
+            raw = input('Select a stat to increase:')
+            if raw == '1':
                 self.player.cp -= 1
                 self.player.shield['stat'] += 1
-            elif raw_int == 2:
+            elif raw == '2':
                 self.player.cp -= 1
                 self.player.scroll['stat'] += 1
-            elif raw_int == 3:
+            elif raw == '3':
                 self.player.cp -= 1
                 self.player.sword['stat'] += 1
-            elif raw_int == 4:
+            elif raw == '4':
                 break
-        print(f"{self.player.shield['name']}: {self.player.shield['stat']}")
-        print(f"{self.player.scroll['name']}: {self.player.scroll['stat']}")
-        print(f"{self.player.sword['name']}: {self.player.sword['stat']}")
+
         return self    
 
     def battle_phase(self, player, enemy):
@@ -105,12 +123,13 @@ class Game():
                     [f'HP: {player.hp}/{player.max_hp}', f'HP: {enemy.hp}/{enemy.max_hp}']
                     ])
                 # print(battle_grid.draw())
+                Scene.clear()
                 self.print_cards([player, enemy])
                 inputs = ['1', '2', '3']
                 print(f"1) {player.shield['name']}: {player.shield['stat']}")
                 print(f'2) {player.scroll["name"]}: {player.scroll["stat"]}')
                 print(f'3) {player.sword["name"]}: {player.sword["stat"]}')
-                entry = input("Select a number:")
+                entry = input("Select a move:")
                 if entry in inputs:
                     player_input = entry
 
@@ -181,17 +200,21 @@ class Game():
         return player.hp, enemy.hp
     
     def select_chara(self):
+        '''Takes self. Modifies self.party_deck and self.player. Returns self.'''
         # Console Interface Menu
         selected = None
+        # Game Over Condition can be better placed
         if len(self.party_deck.cards) == 0:
             self.game_over()
+        # Scene from here down. Can return selection
         deck = self.party_deck.cards
         while selected == None:
+            Scene.clear()
             self.print_cards(self.party_deck.cards)
             print(f'\nSelect Your Character')
             for i in range(len(deck)):
                 print(f'{i+1}) {deck[i].name}, {deck[i].desc}')
-            selection = input('Choose an option by number')
+            selection = input('Choose player:')
             try:
                 selection = int(selection)
                 if selection-1 in range(len(deck)):
@@ -203,6 +226,8 @@ class Game():
         return self
     
     def print_cards(self, cards=list):
+        '''Takes list of card objects. Prints test grid.'''
+        # Scene Prototype
         card_names = []
         card_hps = []
         card_sps = []
@@ -223,6 +248,8 @@ class Game():
         print(sheet.draw())
 
     def game_over(self):
+        '''Takes self. Return to game_start() or quit.'''
+        # Scene. Choose restart or quit
         print(f'Your Party has Fallen')
         self.party_deck.cards.clear()
         self.stage_deck.cards.clear()
@@ -274,6 +301,7 @@ class Chara(Card):
         }
         self.speed = chara_sheet['speed']
         self.cp = chara_sheet['cp']
+        self.image = chara_sheet['image']
 
 class Event(Card):
     def __init__(self, name, desc, effect):
@@ -291,4 +319,10 @@ def rester(self):
     self.player.hp += 10
     input(f'\n{self.player.name} has restored 10 hp!')
 
-
+class Scene(object):
+    def __init__(self):
+        self.image1 = None
+        self.image2 = None
+    def clear():
+        command = 'cls' if os.name in ('nt', 'dos') else 'clear'
+        os.system(command)
