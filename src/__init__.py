@@ -7,6 +7,7 @@ class Game():
         self.party_deck = Deck()
         self.stage_deck = Deck()
         self.player = None
+        self.stage = 1
 
     def game_start(self):
         '''Takes self. calls self.game_loop().'''
@@ -15,6 +16,7 @@ class Game():
         for hero in chara_sheet.heros:
             self.party_deck.cards.append(Chara(hero))
         # Begins game_loop()
+        # Scene here with new/load/quit
         self.game_loop()
 
     def game_loop(self):
@@ -28,21 +30,28 @@ class Game():
 
             self.play_stage()
 
-            if self.player.hp <= 0:
-                print(f'\n{self.player.name} has been defeated')
-                self.party_deck.cards.pop(self.party_deck.cards.index(self.player))
-                self.player = None
+            self.stage_conditions()
 
-            if len(self.stage_deck.cards) == 0:
-                Scene.clear()
-                self.print_cards(self.party_deck.cards)
-                input("Stage Complete")
-                self.player = None
+    def stage_conditions(self):
+        '''Takes self. Modifies player, stage_deck. Returns self.'''
+        if self.player.hp <= 0:
+            print(f'\n{self.player.name} has been defeated')
+            self.party_deck.cards.pop(self.party_deck.cards.index(self.player))
+            self.player = None
+
+        if len(self.stage_deck.cards) == 0:
+            Scene.clear()
+            self.print_cards(self.party_deck.cards)
+            input("Stage Complete")
+            self.stage += 1
+            self.player = None
+
+        return self
 
     def build_stage(self):
         '''Takes self. Modifies self.stage_deck. Returns self'''
         # Logic No Inputs
-        # Only builds stage if last stage is completed
+        # Only builds stage if stage deck is empty
         if len(self.stage_deck.cards) == 0:
             n = 1
             while n <= 10:
@@ -59,27 +68,26 @@ class Game():
         # Scenes
         while len(self.stage_deck.cards) > 0 and self.player.hp > 0:
             # Remove to scene function
-            Scene.clear()
-            print(self.player.image)
-            print(f'\n{self.player.name} HP: {self.player.hp}/{self.player.max_hp}')
-            print(f'Player CPs: {self.player.cp}')
-            print(f'Cards in Stage: {len(self.stage_deck.cards)}')
-            input('You draw a card...')
-            card = self.stage_deck.cards[0]
+            DrawStart = Scene(image1=self.player.image, lines=[
+                f'{self.player.name} HP: {self.player.hp}/{self.player.max_hp}',
+                f'Player CPs: {self.player.cp}',
+                f'Cards in Stage: {len(self.stage_deck.cards)}',
+                'You draw a card...'
+                ]
+                ).show()
+            card = self.stage_deck.draw_top()
+
             if isinstance(card, Chara):
                 enemy = card
                 # Remove to scene function
-                Scene.clear()
-                print(enemy.image)
-                input(f'\nYou drew a Monster: {enemy.name}, {enemy.desc}!')
+                MonsterDraw = Scene(enemy.image, lines=[
+                    f'You drew a Monster: {enemy.name}, {enemy.desc}!'
+                ]).show()
                 self.player.hp, enemy.hp = self.battle_phase(self.player, enemy)
-                if enemy.hp <= 0:
-                    self.stage_deck.cards.pop(self.stage_deck.cards.index(card))
             elif isinstance(card, Event):
                 # Remove to scnee function
                 input(f'\nYou drew an Event: {card.name}, {card.desc}')
                 card.activate(self)
-                self.stage_deck.cards.pop(self.stage_deck.cards.index(card))
             
             self.camp()
 
@@ -123,8 +131,9 @@ class Game():
                     [f'HP: {player.hp}/{player.max_hp}', f'HP: {enemy.hp}/{enemy.max_hp}']
                     ])
                 # print(battle_grid.draw())
-                Scene.clear()
-                self.print_cards([player, enemy])
+                # Scene.clear()
+                BattleScene = Scene(player.image, enemy.image).show()
+                # self.print_cards([player, enemy])
                 inputs = ['1', '2', '3']
                 print(f"1) {player.shield['name']}: {player.shield['stat']}")
                 print(f'2) {player.scroll["name"]}: {player.scroll["stat"]}')
@@ -320,9 +329,54 @@ def rester(self):
     input(f'\n{self.player.name} has restored 10 hp!')
 
 class Scene(object):
-    def __init__(self):
-        self.image1 = None
-        self.image2 = None
-    def clear():
+    def __init__(self, image1=None, image2=None, lines=[]):
+        self.image1 = image1
+        self.image2 = image2
+        self.lines = lines
+
+    def clear(self=None):
         command = 'cls' if os.name in ('nt', 'dos') else 'clear'
         os.system(command)
+
+    def show(self):
+        self.clear()
+        if self.image1 and self.image2:
+            self.render_image()
+        else:
+            print(self.image1)
+        for line in self.lines:
+            if line == self.lines[-1]:
+                input(line)
+            else:
+                print(line)
+
+        return self
+    
+    def render_image(self):
+        img1 = []
+        img2 = []
+        for line in self.image1.splitlines():
+            img1.append(line)
+        for line in self.image2.splitlines():
+            img2.append(line)
+        img = []
+        for i in range(len(img1)):
+            img.append(img1[i] + img2[i])
+        for line in img:
+            print(line)
+
+
+    def move_menu(self, player):
+        options = []
+        selected = None
+        while not selected:
+            for option in list:
+                options.append(option)
+                num = options.index(option) + 1
+                print(f'{num}){options[num-1]}')
+            raw = input("Select Option: ")
+            comp = int(raw) - 1
+            if comp in range(len(options)):
+                print(options[comp])
+                selected = options[comp]
+        return selected
