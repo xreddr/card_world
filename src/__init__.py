@@ -132,7 +132,9 @@ class Game():
                     ])
                 # print(battle_grid.draw())
                 # Scene.clear()
-                BattleScene = Scene(player.image, enemy.image).show()
+                BattleScene = Scene(player.image, enemy.image, [
+                    f'{player.name} HP: {player.hp}/{player.max_hp}         {enemy.name} HP: {enemy.hp}/{enemy.max_hp}'
+                ]).show()
                 # self.print_cards([player, enemy])
                 inputs = ['1', '2', '3']
                 print(f"1) {player.shield['name']}: {player.shield['stat']}")
