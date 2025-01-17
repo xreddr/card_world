@@ -120,18 +120,36 @@ class Game():
                 break
 
         return self    
+    
+    def double_battle(self, player, enemy):
+        while player.hp > 0 and enemy.hp > 0:
+            players = [player, enemy]
+            first_player = None
+            second_player = None
+            if player.speed > enemy.speed:
+                first_player = players.pop(player)
+            else:
+                first_player = players.pop(enemy)
+            second_player = players.pop()
+
+            enemy_selections = [enemy.shield, enemy.scroll, enemy.sword]
+            enemy_input = random.choice(enemy_selections)
+
+            if first_player is player:
+                player_input = None
+                while player_input is None:
+                    # Call Battle scene with moves menu
+                    pass
+
+            else:
+                # Call Battle scene showing enemy move and move menu for response
+                pass
+
 
     def battle_phase(self, player, enemy):
         while player.hp > 0 and enemy.hp > 0:
             player_input = None
             while player_input is None:
-                battle_grid = Texttable()
-                battle_grid.add_rows([
-                    [player.name, enemy.name],
-                    [f'HP: {player.hp}/{player.max_hp}', f'HP: {enemy.hp}/{enemy.max_hp}']
-                    ])
-                # print(battle_grid.draw())
-                # Scene.clear()
                 BattleScene = Scene(player.image, enemy.image, [
                     f'{player.name} HP: {player.hp}/{player.max_hp}         {enemy.name} HP: {enemy.hp}/{enemy.max_hp}'
                 ]).show()

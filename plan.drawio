@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="1cVl3EwTaau4G9fA5VbV" name="Page-1">
-        <mxGraphModel dx="2234" dy="2398" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+        <mxGraphModel dx="1827" dy="2146" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -315,13 +315,13 @@
                 <mxCell id="120" style="edgeStyle=none;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;shadow=0;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;fontSize=16;" parent="1" source="112" target="105" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="125" style="edgeStyle=none;html=1;entryX=0.063;entryY=0.333;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="112" target="113">
+                <mxCell id="125" style="edgeStyle=none;html=1;entryX=0.063;entryY=0.333;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="112" target="113" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="112" value="Camp&lt;span style=&quot;color: rgba(0, 0, 0, 0); font-family: monospace; font-size: 0px; text-align: start;&quot;&gt;%3CmxGraphModel%3E%3Croot%3E%3CmxCell%20id%3D%220%22%2F%3E%3CmxCell%20id%3D%221%22%20parent%3D%220%22%2F%3E%3CmxCell%20id%3D%222%22%20value%3D%22Result%22%20style%3D%22shape%3Dprocess%3BwhiteSpace%3Dwrap%3Bhtml%3D1%3BbackgroundOutline%3D1%3Bsketch%3D1%3BhachureGap%3D4%3Bjiggle%3D2%3BcurveFitting%3D1%3BfontFamily%3DArchitects%20Daughter%3BfontSource%3Dhttps%253A%252F%252Ffonts.googleapis.com%252Fcss%253Ffamily%253DArchitects%252BDaughter%3BfontSize%3D20%3B%22%20vertex%3D%221%22%20parent%3D%221%22%3E%3CmxGeometry%20x%3D%22910%22%20y%3D%22337.5%22%20width%3D%22120%22%20height%3D%2260%22%20as%3D%22geometry%22%2F%3E%3C%2FmxCell%3E%3C%2Froot%3E%3C%2FmxGraphModel%3E&lt;/span&gt;" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;fontSize=20;" parent="1" vertex="1">
                     <mxGeometry x="-267.5" y="-497.5" width="120" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="126" style="edgeStyle=none;html=1;entryX=0.979;entryY=0.625;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="113" target="112">
+                <mxCell id="126" style="edgeStyle=none;html=1;entryX=0.979;entryY=0.625;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="113" target="112" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="113" value="Player Input" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;sketch=1;hachureGap=4;jiggle=2;curveFitting=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;fontSize=20;" parent="1" vertex="1">
@@ -335,6 +335,9 @@
                         <mxPoint x="-111.5" y="-712.5" as="sourcePoint"/>
                         <mxPoint x="-147.5" y="-692.5" as="targetPoint"/>
                     </mxGeometry>
+                </mxCell>
+                <mxCell id="127" value="&lt;font style=&quot;font-size: 18px;&quot;&gt;Add:&lt;br&gt;Scene child classes: battle, camp, etc&lt;br&gt;Event card sheet and images&lt;br&gt;&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="130" y="-1330" width="410" height="110" as="geometry"/>
                 </mxCell>
             </root>
         </mxGraphModel>
