@@ -68,7 +68,7 @@ class Game():
         # Scenes
         while len(self.stage_deck.cards) > 0 and self.player.hp > 0:
             # Remove to scene function
-            DrawStart = Scene(image1=self.player.image, lines=[
+            DrawStart = Scene(images=[self.player.image], text=[
                 f'{self.player.name} HP: {self.player.hp}/{self.player.max_hp}',
                 f'Player CPs: {self.player.cp}',
                 f'Cards in Stage: {len(self.stage_deck.cards)}',
@@ -80,7 +80,7 @@ class Game():
             if isinstance(card, Chara):
                 enemy = card
                 # Remove to scene function
-                MonsterDraw = Scene(enemy.image, lines=[
+                MonsterDraw = Scene(images=[enemy.image], text=[
                     f'You drew a Monster: {enemy.name}, {enemy.desc}!'
                 ]).show()
                 self.player.hp, enemy.hp = self.battle_phase(self.player, enemy)
@@ -150,7 +150,7 @@ class Game():
         while player.hp > 0 and enemy.hp > 0:
             player_input = None
             while player_input is None:
-                BattleScene = Scene(player.image, enemy.image, [
+                BattleScene = Scene(images=[player.image, enemy.image], text=[
                     f'{player.name} HP: {player.hp}/{player.max_hp}         {enemy.name} HP: {enemy.hp}/{enemy.max_hp}'
                 ]).show()
                 # self.print_cards([player, enemy])
@@ -349,10 +349,10 @@ def rester(self):
     input(f'\n{self.player.name} has restored 10 hp!')
 
 class Scene(object):
-    def __init__(self, image1=None, image2=None, lines=[]):
-        self.image1 = image1
-        self.image2 = image2
-        self.lines = lines
+    def __init__(self, images=[], text=[], menu=[]):
+        self.images = images
+        self.text = text
+        self.menu = menu
 
     def clear(self=None):
         command = 'cls' if os.name in ('nt', 'dos') else 'clear'
@@ -360,12 +360,10 @@ class Scene(object):
 
     def show(self):
         self.clear()
-        if self.image1 and self.image2:
-            self.render_image()
-        else:
-            print(self.image1)
-        for line in self.lines:
-            if line == self.lines[-1]:
+        self.render_image()
+
+        for line in self.text:
+            if line == self.text[-1]:
                 input(line)
             else:
                 print(line)
@@ -373,17 +371,28 @@ class Scene(object):
         return self
     
     def render_image(self):
-        img1 = []
-        img2 = []
-        for line in self.image1.splitlines():
-            img1.append(line)
-        for line in self.image2.splitlines():
-            img2.append(line)
-        img = []
-        for i in range(len(img1)):
-            img.append(img1[i] + img2[i])
-        for line in img:
+        display = []
+        for i in range(len(list(self.images[0].splitlines()))):
+            line = ''
+            for image in self.images:
+                img = list(image.splitlines())
+                line = line + img[i]
+            display.append(line)
+            line= ''
+        for line in display:
             print(line)
+
+        # img1 = []
+        # img2 = []
+        # for line in self.image1.splitlines():
+        #     img1.append(line)
+        # for line in self.image2.splitlines():
+        #     img2.append(line)
+        # img = []
+        # for i in range(len(img1)):
+        #     img.append(img1[i] + img2[i])
+        # for line in img:
+        #     print(line)
 
 
     def move_menu(self, player):
