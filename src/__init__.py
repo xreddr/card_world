@@ -100,6 +100,7 @@ class Game():
         # Player Input
         while self.player.cp > 0:
             Scene.clear()
+            CampScene = Scene(images=[images.camp_image], text=[f"\n{self.player.name} has {self.player.cp} CPs to spend."])
             print(images.camp_image)
             print(f"\n{self.player.name} has {self.player.cp} CPs to spend.")
             print(f"1) {self.player.shield['name']}: {self.player.shield['stat']}")
@@ -122,6 +123,7 @@ class Game():
         return self    
     
     def double_battle(self, player, enemy):
+        # Unused, nothing goes here.
         while player.hp > 0 and enemy.hp > 0:
             players = [player, enemy]
             first_player = None
@@ -148,20 +150,24 @@ class Game():
 
     def battle_phase(self, player, enemy):
         while player.hp > 0 and enemy.hp > 0:
+            # Input
             player_input = None
             while player_input is None:
                 BattleScene = Scene(images=[player.image, enemy.image], text=[
                     f'{player.name} HP: {player.hp}/{player.max_hp}         {enemy.name} HP: {enemy.hp}/{enemy.max_hp}'
-                ]).show()
-                # self.print_cards([player, enemy])
-                inputs = ['1', '2', '3']
-                print(f"1) {player.shield['name']}: {player.shield['stat']}")
-                print(f'2) {player.scroll["name"]}: {player.scroll["stat"]}')
-                print(f'3) {player.sword["name"]}: {player.sword["stat"]}')
-                entry = input("Select a move:")
-                if entry in inputs:
-                    player_input = entry
+                ], menu=player.chara_moves()).show()
+                for key, value in vars(self.player).items():
+                    if type(value) == dict and value['name'] == BattleScene.menu_selection[0]:
+                        player_move = key
+                if player_move == 'shield':
+                    player_input = '1'
+                elif player_move == 'scroll':
+                    player_input = '2'
+                elif player_move == 'sword':
+                    player_input = '3'
 
+            # Logic
+            inputs = ['1', '2', '3']
             com_entry = random.choice(inputs)
             if com_entry == '1':
                 com_stat = enemy.shield['stat']
@@ -301,12 +307,14 @@ class Deck(object):
     def shuffle(self):
         return random.shuffle(self.cards)
 
+
 class Card(object):
     def __init__(self, name, desc):
         self.name = name 
         self.desc = desc
     def read(self):
         print(f'{self.name}\n{self.desc}')
+
 
 class Chara(Card):
     def __init__(self, chara_sheet):
@@ -332,6 +340,25 @@ class Chara(Card):
         self.cp = chara_sheet['cp']
         self.image = chara_sheet['image']
 
+    def chara_moves(self):
+        '''Takes self. Returns list of tuples.'''
+        moves = [(self.shield['name'], self.shield['stat']),
+                 (self.scroll['name'], self.scroll['stat']),
+                 (self.sword['name'], self.sword['stat'])
+                 ]
+
+        return moves
+    
+    def chara_stats(self):
+        '''Takes self. Returns list of tuples.'''
+        stats = [('max HP', self.max_hp),
+                 ('max SP', self.max_sp),
+                 ('speed', self.speed),
+                 ]
+        stats.append(self.chara_moves())
+
+        return stats
+
 class Event(Card):
     def __init__(self, name, desc, effect):
         super().__init__(name, desc)
@@ -348,29 +375,33 @@ def rester(self):
     self.player.hp += 10
     input(f'\n{self.player.name} has restored 10 hp!')
 
+
 class Scene(object):
     def __init__(self, images=[], text=[], menu=[]):
         self.images = images
         self.text = text
         self.menu = menu
+        self.menu_selection = None
 
     def clear(self=None):
         command = 'cls' if os.name in ('nt', 'dos') else 'clear'
         os.system(command)
 
     def show(self):
+        '''Takes self. Returns self.'''
         self.clear()
         self.render_image()
-
-        for line in self.text:
-            if line == self.text[-1]:
-                input(line)
-            else:
-                print(line)
+        self.print_text()
+        if self.menu:
+            self.view_menu()
+        else:
+            input()
 
         return self
     
     def render_image(self):
+        '''Takes self. No return.'''
+        # Convert from list to multiline string type. 
         display = []
         for i in range(len(list(self.images[0].splitlines()))):
             line = ''
@@ -382,30 +413,28 @@ class Scene(object):
         for line in display:
             print(line)
 
-        # img1 = []
-        # img2 = []
-        # for line in self.image1.splitlines():
-        #     img1.append(line)
-        # for line in self.image2.splitlines():
-        #     img2.append(line)
-        # img = []
-        # for i in range(len(img1)):
-        #     img.append(img1[i] + img2[i])
-        # for line in img:
-        #     print(line)
+    def print_text(self):
+        '''Takes self. No return.'''
+        for line in self.text:
+            print(line)
 
+    def view_menu(self):
+        '''Takes self. Modifies self.menu_selection. Returns self.'''
+        while self.menu_selection is None:
+            for i in range(len(self.menu)):
+                n = i +1
+                if type(self.menu[i]) == str:
+                    print(f'{n}) {self.menu[i]}')
+                elif type(self.menu[i]) == tuple:
+                    print(f'{n}) {self.menu[i][0]} {self.menu[i][1]}')
+            raw = input(f'Select option: ')
+            try:
+                selection = int(raw)
+                if selection-1 in range(len(self.menu)):
+                    self.menu_selection = self.menu[selection-1]
+                else:
+                    self.show()
+            except ValueError:
+                self.show()
 
-    def move_menu(self, player):
-        options = []
-        selected = None
-        while not selected:
-            for option in list:
-                options.append(option)
-                num = options.index(option) + 1
-                print(f'{num}){options[num-1]}')
-            raw = input("Select Option: ")
-            comp = int(raw) - 1
-            if comp in range(len(options)):
-                print(options[comp])
-                selected = options[comp]
-        return selected
+        return self
