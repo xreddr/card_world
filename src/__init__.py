@@ -99,26 +99,21 @@ class Game():
         # Scene
         # Player Input
         while self.player.cp > 0:
-            Scene.clear()
-            CampScene = Scene(images=[images.camp_image], text=[f"\n{self.player.name} has {self.player.cp} CPs to spend."])
-            print(images.camp_image)
-            print(f"\n{self.player.name} has {self.player.cp} CPs to spend.")
-            print(f"1) {self.player.shield['name']}: {self.player.shield['stat']}")
-            print(f"2) {self.player.scroll['name']}: {self.player.scroll['stat']}")
-            print(f"3) {self.player.sword['name']}: {self.player.sword['stat']}")
-            print(f"4) None for now")
-            raw = input('Select a stat to increase:')
-            if raw == '1':
-                self.player.cp -= 1
-                self.player.shield['stat'] += 1
-            elif raw == '2':
-                self.player.cp -= 1
-                self.player.scroll['stat'] += 1
-            elif raw == '3':
-                self.player.cp -= 1
-                self.player.sword['stat'] += 1
-            elif raw == '4':
+            CampScene = Scene(images=[images.camp_image], text=[f"\n{self.player.name} has {self.player.cp} CPs to spend."],
+                              menu=self.player.chara_stats())
+            CampScene.menu.append("Leave Camp")
+            CampScene.show()
+            print(CampScene.menu_selection)
+            if CampScene.menu_selection == "Leave Camp":
+                print('break')
                 break
+            tmp = CampScene.menu_selection[0].replace(' ', '_').lower()
+            for key, value in vars(self.player).items():
+                if key == tmp:
+                    self.player.cp -= 1
+                    setattr(self.player, key, value+1)
+ 
+            input()
 
         return self    
     
@@ -157,24 +152,24 @@ class Game():
                     f'{player.name} HP: {player.hp}/{player.max_hp}         {enemy.name} HP: {enemy.hp}/{enemy.max_hp}'
                 ], menu=player.chara_moves()).show()
                 for key, value in vars(self.player).items():
-                    if type(value) == dict and value['name'] == BattleScene.menu_selection[0]:
+                    if value == BattleScene.menu_selection[0]:
                         player_move = key
-                if player_move == 'shield':
+                if player_move == 'move1':
                     player_input = '1'
-                elif player_move == 'scroll':
+                elif player_move == 'move2':
                     player_input = '2'
-                elif player_move == 'sword':
+                elif player_move == 'move3':
                     player_input = '3'
 
             # Logic
             inputs = ['1', '2', '3']
             com_entry = random.choice(inputs)
             if com_entry == '1':
-                com_stat = enemy.shield['stat']
+                com_stat = enemy.shield
             elif com_entry == '2':
-                com_stat = enemy.scroll['stat']
+                com_stat = enemy.scroll
             elif com_entry == '3':
-                com_stat = enemy.sword['stat']
+                com_stat = enemy.sword
 
             def take_damage(player_stat, com_stat):
                 if com_stat >= player_stat:
@@ -220,7 +215,7 @@ class Game():
                 #     take_damage(player_stat, com_stat)
 
             if player_input == '3':
-                player_stat = player.sword['stat']
+                player_stat = player.sword
                 if com_entry == '1':
                     take_damage(player_stat, com_stat)
                 if com_entry == '2':
@@ -275,9 +270,9 @@ class Game():
             card_hps.append(f'HP: {(card.hp, card.max_hp)}')
             card_sps.append(f'SP: {(card.sp, card.max_sp)}')
             card_speeds.append(f'Speed: {card.speed}')
-            card_move1s.append(f'{card.shield["name"]}: {card.shield["stat"]}')
-            card_move2s.append(f'{card.scroll["name"]}: {card.scroll["stat"]}')
-            card_move3s.append(f'{card.sword["name"]}: {card.sword["stat"]}')
+            card_move1s.append(f'{card.move1}: {card.shield}')
+            card_move2s.append(f'{card.move2}: {card.scroll}')
+            card_move3s.append(f'{card.move3}: {card.sword}')
         sheet = Texttable()
         sheet.add_rows([card_names, card_hps, card_sps, card_speeds, card_move1s, card_move2s, card_move3s])
         print(sheet.draw())
@@ -324,40 +319,37 @@ class Chara(Card):
         self.max_hp = chara_sheet['hp']
         self.sp = chara_sheet['sp']
         self.max_sp = chara_sheet['sp']
-        self.shield = {
-            "name" : chara_sheet['moves']['shield']['name'], 
-            "stat" : chara_sheet['moves']['shield']['stat']
-            }
-        self.scroll = {
-            "name" : chara_sheet['moves']['scroll']['name'],
-            "stat" : chara_sheet['moves']['scroll']['stat']
-        }
-        self.sword = {
-            "name" : chara_sheet['moves']['sword']['name'],
-            "stat" : chara_sheet['moves']['sword']['stat']
-        }
         self.speed = chara_sheet['speed']
+        self.shield = chara_sheet['shield']
+        self.scroll = chara_sheet['scroll']
+        self.sword = chara_sheet['sword']
+        self.move1 = chara_sheet['move1']
+        self.move2 = chara_sheet['move2']
+        self.move3 = chara_sheet['move3']
         self.cp = chara_sheet['cp']
         self.image = chara_sheet['image']
 
     def chara_moves(self):
         '''Takes self. Returns list of tuples.'''
-        moves = [(self.shield['name'], self.shield['stat']),
-                 (self.scroll['name'], self.scroll['stat']),
-                 (self.sword['name'], self.sword['stat'])
+        moves = [(self.move1, self.shield),
+                 (self.move2, self.scroll),
+                 (self.move3, self.sword)
                  ]
 
         return moves
     
     def chara_stats(self):
         '''Takes self. Returns list of tuples.'''
-        stats = [('max HP', self.max_hp),
-                 ('max SP', self.max_sp),
-                 ('speed', self.speed),
+        stats = [('Max HP', self.max_hp),
+                 ('Max SP', self.max_sp),
+                 ('Speed', self.speed),
                  ]
-        stats.append(self.chara_moves())
+        for stat in self.chara_moves():
+            stats.append(stat)
+        # stats.append(self.chara_moves())
 
         return stats
+
 
 class Event(Card):
     def __init__(self, name, desc, effect):

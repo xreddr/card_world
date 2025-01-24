@@ -6,20 +6,12 @@ harper = {
     "sp" : 100,
     "speed" : 10,
     "cp" : 0,
-    "moves" : {
-        "shield" : {
-            "name" : "Shield",
-            "stat" : 10
-        },
-        "scroll" : {
-            "name" : "Scroll",
-            "stat" : 10
-        },
-        "sword" : {
-            "name" : "Sword",
-            "stat" : 10
-        }
-    },
+    "shield" : 10,
+    "scroll" : 10,
+    "sword" : 10,
+    "move1" : "Shield",
+    "move2" : "Scroll",
+    "move3" : "Sword",
     "image" : '''
          ▒▒▒▒▒▒▒▒       
 █       ▒▒▒▒░░░▒▒▒      
@@ -45,20 +37,12 @@ alexa = {
     "sp" : 100,
     "speed" : 10,
     "cp" : 0,
-    "moves" : {
-        "shield" : {
-            "name" : "Buckler",
-            "stat" : 10
-        },
-        "scroll" : {
-            "name" : "Enchantment",
-            "stat" : 10
-        },
-        "sword" : {
-            "name" : "Dagger",
-            "stat" : 10
-        }
-    },
+    "shield" : 10,
+    "scroll" : 10,
+    "sword" : 10,
+    "move1" : "Buckler",
+    "move2" : "Psych",
+    "move3" : "Dagger",
     "image" : '''
     ░░░░░░░░      
    ░░░▒▒▒▒░░░     
@@ -84,20 +68,12 @@ zombie = {
     "sp" : 100,
     "speed" : 8,
     "cp" : 1,
-    "moves" : {
-        "shield" : {
-            "name" : "Bones",
-            "stat" : 8
-        },
-        "scroll" : {
-            "name" : "Swarms",
-            "stat" : 8
-        },
-        "sword" : {
-            "name" : "Bite",
-            "stat" : 8
-        }
-    },
+    "shield" : 10,
+    "scroll" : 10,
+    "sword" : 10,
+    "move1" : "Bones",
+    "move2" : "Swarms",
+    "move3" : "Bite",
     "image" : '''
          ██▓▓▓          
         ▓▓▒▒▒▒▓         
@@ -123,20 +99,12 @@ bat = {
     "sp" : 100,
     "speed" : 13,
     "cp" : 1,
-    "moves" : {
-        "shield" : {
-            "name" : "Scratch",
-            "stat" : 6
-        },
-        "scroll" : {
-            "name" : "Bite",
-            "stat" : 6
-        },
-        "sword" : {
-            "name" : "Screach",
-            "stat" : 6
-        }
-    },
+    "shield" : 6,
+    "scroll" : 6,
+    "sword" : 6,
+    "move1" : "Scratch",
+    "move2" : "Bite",
+    "move3" : "Swoop",
     "image" : '''
                         
                         
