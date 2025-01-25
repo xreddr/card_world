@@ -1,5 +1,4 @@
 from src import chara_sheet, images
-from texttable import Texttable
 import random, os
 
 class Game():
@@ -32,29 +31,30 @@ class Game():
 
             self.stage_conditions()
 
+            self.game_over()
+
     def stage_conditions(self):
         '''Takes self. Modifies player, stage_deck. Returns self.'''
+        # Scene for each to transition
         if self.player.hp <= 0:
             print(f'\n{self.player.name} has been defeated')
             self.party_deck.cards.pop(self.party_deck.cards.index(self.player))
             self.player = None
+            input()
 
         if len(self.stage_deck.cards) == 0:
             Scene.clear()
-            self.print_cards(self.party_deck.cards)
             input("Stage Complete")
             self.stage += 1
             self.player = None
 
         return self
 
-    def build_stage(self):
+    def build_stage(self, size: int=10):
         '''Takes self. Modifies self.stage_deck. Returns self'''
-        # Logic No Inputs
-        # Only builds stage if stage deck is empty
         if len(self.stage_deck.cards) == 0:
             n = 1
-            while n <= 10:
+            while n <= size:
                 if n % 4 == 0:
                     self.stage_deck.cards.append(Event('Respite', 'Rest and restore some health', rester))
                 else:
@@ -94,26 +94,24 @@ class Game():
         return self   
     
     def camp(self):
-        '''Takes self. Modifies self.player.cp. Returns self.'''
-        # Logic
-        # Scene
-        # Player Input
+        '''Takes self. Modifies self.player. Returns self.'''
         while self.player.cp > 0:
             CampScene = Scene(images=[images.camp_image], text=[f"\n{self.player.name} has {self.player.cp} CPs to spend."],
                               menu=self.player.chara_stats())
             CampScene.menu.append("Leave Camp")
             CampScene.show()
-            print(CampScene.menu_selection)
             if CampScene.menu_selection == "Leave Camp":
-                print('break')
                 break
-            tmp = CampScene.menu_selection[0].replace(' ', '_').lower()
+            tmp = CampScene.menu_selection[0].replace(' ', '_').lower() # Player Stat = player_stat
+            # print(tmp)
             for key, value in vars(self.player).items():
+                # print(key)
                 if key == tmp:
-                    self.player.cp -= 1
                     setattr(self.player, key, value+1)
- 
-            input()
+                    self.player.cp -= 1
+                    CampScene.text = [f'You upgraded {key.capitalize()}\nYou have {self.player.cp} CP reamining.']
+                    # CampScene.menu = []
+                    CampScene.show()
 
         return self    
     
@@ -152,14 +150,8 @@ class Game():
                     f'{player.name} HP: {player.hp}/{player.max_hp}         {enemy.name} HP: {enemy.hp}/{enemy.max_hp}'
                 ], menu=player.chara_moves()).show()
                 for key, value in vars(self.player).items():
-                    if value == BattleScene.menu_selection[0]:
-                        player_move = key
-                if player_move == 'move1':
-                    player_input = '1'
-                elif player_move == 'move2':
-                    player_input = '2'
-                elif player_move == 'move3':
-                    player_input = '3'
+                    if value == BattleScene.menu_selection[0]: # Takes first index of tuple
+                        player_input = key[-1] # Takes last character of string either 1,2,3
 
             # Logic
             inputs = ['1', '2', '3']
@@ -234,62 +226,56 @@ class Game():
         # Console Interface Menu
         selected = None
         # Game Over Condition can be better placed
-        if len(self.party_deck.cards) == 0:
-            self.game_over()
+        # if len(self.party_deck.cards) == 0:
+        #     self.game_over()
         # Scene from here down. Can return selection
         deck = self.party_deck.cards
         while selected == None:
-            Scene.clear()
-            self.print_cards(self.party_deck.cards)
-            print(f'\nSelect Your Character')
-            for i in range(len(deck)):
-                print(f'{i+1}) {deck[i].name}, {deck[i].desc}')
-            selection = input('Choose player:')
-            try:
-                selection = int(selection)
-                if selection-1 in range(len(deck)):
-                    selected = deck[selection-1]
+            # Convert Chara object attributes to to Scene paramater list
+            chara_images = []
+            chara_stats = []
+            chara_menu = []
+            # Update to add lines to chara_images instead of new string images in chara_stats
+            for card in self.party_deck.cards:
+                chara_images.append(card.image)
+                stat_image = ''
+                for stat in card.chara_stats():
+                    # Convert list of tuples to multiline string
+                    stat_line = f'{stat[0]}, {stat[1]}'
+                    while len(stat_line) < 24:
+                        stat_line += " "
+                    if stat_image == '':
+                        stat_image += stat_line
+                    else:
+                        stat_image += f'\n{stat_line}'
+                chara_stats.append(stat_image)
+                chara_menu.append(f'{card.name}, {card.desc}')
+            chara_stats_text = Scene(images=chara_stats).render_image()
+            CharaSelect = Scene(images=chara_images, text=chara_stats_text, menu=chara_menu).show()
+            print(CharaSelect.menu_selection)
+            for card in self.party_deck.cards:
+                if card.name in CharaSelect.menu_selection:
+                    selected = card
                     self.player = selected
-            except ValueError:
-                pass
 
         return self
-    
-    def print_cards(self, cards=list):
-        '''Takes list of card objects. Prints test grid.'''
-        # Scene Prototype
-        card_names = []
-        card_hps = []
-        card_sps = []
-        card_speeds = []
-        card_move1s = []
-        card_move2s = []
-        card_move3s = []
-        for card in cards:
-            card_names.append(card.name)
-            card_hps.append(f'HP: {(card.hp, card.max_hp)}')
-            card_sps.append(f'SP: {(card.sp, card.max_sp)}')
-            card_speeds.append(f'Speed: {card.speed}')
-            card_move1s.append(f'{card.move1}: {card.shield}')
-            card_move2s.append(f'{card.move2}: {card.scroll}')
-            card_move3s.append(f'{card.move3}: {card.sword}')
-        sheet = Texttable()
-        sheet.add_rows([card_names, card_hps, card_sps, card_speeds, card_move1s, card_move2s, card_move3s])
-        print(sheet.draw())
 
     def game_over(self):
-        '''Takes self. Return to game_start() or quit.'''
-        # Scene. Choose restart or quit
-        print(f'Your Party has Fallen')
-        self.party_deck.cards.clear()
-        self.stage_deck.cards.clear()
-        print('1) Continue')
-        print('2) Quit')
-        selected = int(input('What will you do?'))
-        if selected == 1:
-            self.game_start()
-        if selected == 2:
-            quit()
+        '''Takes self. Return to game_start() or quit. Returns self.'''
+        if len(self.party_deck.cards) == 0:
+            # Scene. Choose restart or quit
+            print(f'Your Party has Fallen')
+            self.party_deck.cards.clear()
+            self.stage_deck.cards.clear()
+            print('1) Continue')
+            print('2) Quit')
+            selected = int(input('What will you do?'))
+            if selected == 1:
+                self.game_start()
+            if selected == 2:
+                quit()
+        
+        return self
 
 
 class Deck(object):
@@ -304,7 +290,7 @@ class Deck(object):
 
 
 class Card(object):
-    def __init__(self, name, desc):
+    def __init__(self, name: str, desc: str):
         self.name = name 
         self.desc = desc
     def read(self):
@@ -312,7 +298,7 @@ class Card(object):
 
 
 class Chara(Card):
-    def __init__(self, chara_sheet):
+    def __init__(self, chara_sheet: dict):
         super().__init__(chara_sheet['name'], chara_sheet['desc'])
         self.name = chara_sheet['name']
         self.hp = chara_sheet['hp']
@@ -330,7 +316,7 @@ class Chara(Card):
         self.image = chara_sheet['image']
 
     def chara_moves(self):
-        '''Takes self. Returns list of tuples.'''
+        '''Takes self. Returns list[tuple(str, int)].'''
         moves = [(self.move1, self.shield),
                  (self.move2, self.scroll),
                  (self.move3, self.sword)
@@ -339,7 +325,7 @@ class Chara(Card):
         return moves
     
     def chara_stats(self):
-        '''Takes self. Returns list of tuples.'''
+        '''Takes self. Returns list[tuple(str, int)].'''
         stats = [('Max HP', self.max_hp),
                  ('Max SP', self.max_sp),
                  ('Speed', self.speed),
@@ -369,7 +355,7 @@ def rester(self):
 
 
 class Scene(object):
-    def __init__(self, images=[], text=[], menu=[]):
+    def __init__(self, images: list[str] = None, text: list[str] = None, menu: list[str] = None) -> None:
         self.images = images
         self.text = text
         self.menu = menu
@@ -392,8 +378,8 @@ class Scene(object):
         return self
     
     def render_image(self):
-        '''Takes self. No return.'''
-        # Convert from list to multiline string type. 
+        '''Takes self.image list of multiline str. Returns list[str].'''
+        # Cocatonate lines of multiline str based by index. Multiline strings appear side by side.
         display = []
         for i in range(len(list(self.images[0].splitlines()))):
             line = ''
@@ -403,7 +389,11 @@ class Scene(object):
             display.append(line)
             line= ''
         for line in display:
+            ## Debug image size.
+            # print(len(line))
             print(line)
+        
+        return display
 
     def print_text(self):
         '''Takes self. No return.'''
@@ -424,6 +414,7 @@ class Scene(object):
                 selection = int(raw)
                 if selection-1 in range(len(self.menu)):
                     self.menu_selection = self.menu[selection-1]
+                    self.menu = []
                 else:
                     self.show()
             except ValueError:
