@@ -1,3 +1,6 @@
+'''
+Single image line height = 14, characters = 24
+'''
 
 harper = {
     "name" : "Harper",

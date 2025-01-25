@@ -16,7 +16,15 @@ class Game():
             self.party_deck.cards.append(Chara(hero))
         # Begins game_loop()
         # Scene here with new/load/quit
-        self.game_loop()
+        CastleScene = Scene(images=[images.castle_image], text=["Welcome to Card World!"], menu=[
+            "Start Game",
+            "Quit"
+        ]).show()
+        if CastleScene.menu_selection == "Start Game":
+            self.game_loop()
+        elif CastleScene.menu_selection == "Quit":
+            quit()
+        # self.game_loop()
 
     def game_loop(self):
         '''Takes self. Continues until force quite.'''
@@ -96,23 +104,24 @@ class Game():
     def camp(self):
         '''Takes self. Modifies self.player. Returns self.'''
         while self.player.cp > 0:
-            CampScene = Scene(images=[images.camp_image], text=[f"\n{self.player.name} has {self.player.cp} CPs to spend."],
+            CampScene = Scene(images=[images.camp_image], text=[f"{self.player.name} has {self.player.cp} CPs to spend."],
                               menu=self.player.chara_stats())
             CampScene.menu.append("Leave Camp")
             CampScene.show()
             if CampScene.menu_selection == "Leave Camp":
                 break
             tmp = CampScene.menu_selection[0].replace(' ', '_').lower() # Player Stat = player_stat
-            # print(tmp)
+            print(tmp)
             for key, value in vars(self.player).items():
-                # print(key)
-                if key == tmp:
-                    setattr(self.player, key, value+1)
+                # print(key, value)
+                if key == tmp or value == tmp.capitalize():
+                    self.player.increase_stat(key)
                     self.player.cp -= 1
+                    if value == tmp.capitalize():
+                        key = value
                     CampScene.text = [f'You upgraded {key.capitalize()}\nYou have {self.player.cp} CP reamining.']
-                    # CampScene.menu = []
                     CampScene.show()
-
+            # input()
         return self    
     
     def double_battle(self, player, enemy):
@@ -225,11 +234,7 @@ class Game():
         '''Takes self. Modifies self.party_deck and self.player. Returns self.'''
         # Console Interface Menu
         selected = None
-        # Game Over Condition can be better placed
-        # if len(self.party_deck.cards) == 0:
-        #     self.game_over()
         # Scene from here down. Can return selection
-        deck = self.party_deck.cards
         while selected == None:
             # Convert Chara object attributes to to Scene paramater list
             chara_images = []
@@ -256,8 +261,8 @@ class Game():
             for card in self.party_deck.cards:
                 if card.name in CharaSelect.menu_selection:
                     selected = card
-                    self.player = selected
 
+        self.player = selected
         return self
 
     def game_over(self):
@@ -335,6 +340,33 @@ class Chara(Card):
         # stats.append(self.chara_moves())
 
         return stats
+    
+    def take_damage(self, amount: int):
+        self.hp -= amount
+        if self.hp > 0:
+            self.hp = 0
+
+        return self
+    
+    def heal(self, amount: int):
+        if (self.hp + amount) > self.max_hp:
+            self.hp = self.max_hp
+        else:
+            self.hp += amount
+        
+        return self
+    
+    def increase_stat(self, attr: str):
+        if attr == 'move1':
+            attr = 'shield'
+        elif attr == 'move2':
+            attr = 'scroll'
+        elif attr == 'move3':
+            attr = 'sword'
+        value = getattr(self, attr)
+        setattr(self, attr, value + 1)
+
+        return self
 
 
 class Event(Card):
@@ -350,8 +382,10 @@ def restore(player, amount):
     return player.hp
 
 def rester(self):
-    self.player.hp += 10
+    self.player.heal(10)
     input(f'\n{self.player.name} has restored 10 hp!')
+    
+    return self
 
 
 class Scene(object):
@@ -379,7 +413,7 @@ class Scene(object):
     
     def render_image(self):
         '''Takes self.image list of multiline str. Returns list[str].'''
-        # Cocatonate lines of multiline str based by index. Multiline strings appear side by side.
+        # Cocatonate lines of multiline str by index. Multiline strings appear side by side.
         display = []
         for i in range(len(list(self.images[0].splitlines()))):
             line = ''
