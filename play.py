@@ -1,12 +1,15 @@
 import src
+from src import Game as StartGame, Scene as StartScene
 
-Play = src.Game()
+def main():
+    Play = src.Game()
+    Play.game_start()
 
-Play.game_start()
+Game = StartGame()
+Scene = StartScene()
 
-'''
-def play(Game, Scene):
+def play_game():
     Game.game_start()
-    StartMenu = Scene(image, text, menu).show()
-    
-'''
+
+if __name__ == '__main__':
+    main()

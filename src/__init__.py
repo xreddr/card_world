@@ -50,7 +50,7 @@ class Game():
             self.player = None
             input()
 
-        if len(self.stage_deck.cards) == 0:
+        elif len(self.stage_deck.cards) == 0:
             Scene.clear()
             input("Stage Complete")
             self.stage += 1
@@ -76,21 +76,22 @@ class Game():
         # Scenes
         while len(self.stage_deck.cards) > 0 and self.player.hp > 0:
             # Remove to scene function
-            DrawStart = Scene(images=[self.player.image], text=[
+            DrawStart = Scene(text=[
                 f'{self.player.name} HP: {self.player.hp}/{self.player.max_hp}',
                 f'Player CPs: {self.player.cp}',
                 f'Cards in Stage: {len(self.stage_deck.cards)}',
                 'You draw a card...'
                 ]
-                ).show()
+                ).cards_to_images([self.player], 'desc').show()
             card = self.stage_deck.draw_top()
 
             if isinstance(card, Chara):
                 enemy = card
                 # Remove to scene function
-                MonsterDraw = Scene(images=[enemy.image], text=[
-                    f'You drew a Monster: {enemy.name}, {enemy.desc}!'
-                ]).show()
+                # MonsterDraw = Scene(images=[enemy.image], text=[
+                #     f'You drew a Monster: {enemy.name}, {enemy.desc}!'
+                # ]).show()
+                MonasterDraw = Scene().cards_to_images([enemy], 'desc').show()
                 self.player.hp, enemy.hp = self.battle_phase(self.player, enemy)
             elif isinstance(card, Event):
                 # Remove to scnee function
@@ -121,6 +122,7 @@ class Game():
                         key = value
                     CampScene.text = [f'You upgraded {key.capitalize()}\nYou have {self.player.cp} CP reamining.']
                     CampScene.show()
+                    break
             # input()
         return self    
     
@@ -155,9 +157,10 @@ class Game():
             # Input
             player_input = None
             while player_input is None:
-                BattleScene = Scene(images=[player.image, enemy.image], text=[
-                    f'{player.name} HP: {player.hp}/{player.max_hp}         {enemy.name} HP: {enemy.hp}/{enemy.max_hp}'
-                ], menu=player.chara_moves()).show()
+                # BattleScene = Scene(images=[player.image, enemy.image], text=[
+                #     f'{player.name} HP: {player.hp}/{player.max_hp}         {enemy.name} HP: {enemy.hp}/{enemy.max_hp}'
+                # ], menu=player.chara_moves()).show()
+                BattleScene = Scene(menu=player.chara_moves()).cards_to_images(cards=[player, enemy], data='battle').show()
                 for key, value in vars(self.player).items():
                     if value == BattleScene.menu_selection[0]: # Takes first index of tuple
                         player_input = key[-1] # Takes last character of string either 1,2,3
@@ -196,6 +199,7 @@ class Game():
                 input(f'\nYour moves were evenly matched')
 
             if player_input == '1':
+                ## Instant damage for testing
                 enemy.hp -= 25
                 # player_stat = player.shield
                 # if com_entry == '1':
@@ -232,32 +236,12 @@ class Game():
     
     def select_chara(self):
         '''Takes self. Modifies self.party_deck and self.player. Returns self.'''
-        # Console Interface Menu
         selected = None
-        # Scene from here down. Can return selection
         while selected == None:
-            # Convert Chara object attributes to to Scene paramater list
-            chara_images = []
-            chara_stats = []
             chara_menu = []
-            # Update to add lines to chara_images instead of new string images in chara_stats
             for card in self.party_deck.cards:
-                chara_images.append(card.image)
-                stat_image = ''
-                for stat in card.chara_stats():
-                    # Convert list of tuples to multiline string
-                    stat_line = f'{stat[0]}, {stat[1]}'
-                    while len(stat_line) < 24:
-                        stat_line += " "
-                    if stat_image == '':
-                        stat_image += stat_line
-                    else:
-                        stat_image += f'\n{stat_line}'
-                chara_stats.append(stat_image)
                 chara_menu.append(f'{card.name}, {card.desc}')
-            chara_stats_text = Scene(images=chara_stats).render_image()
-            CharaSelect = Scene(images=chara_images, text=chara_stats_text, menu=chara_menu).show()
-            print(CharaSelect.menu_selection)
+            CharaSelect = Scene(menu=chara_menu).cards_to_images(self.party_deck.cards).show()
             for card in self.party_deck.cards:
                 if card.name in CharaSelect.menu_selection:
                     selected = card
@@ -431,8 +415,9 @@ class Scene(object):
 
     def print_text(self):
         '''Takes self. No return.'''
-        for line in self.text:
-            print(line)
+        if self.text:
+            for line in self.text:
+                print(line)
 
     def view_menu(self):
         '''Takes self. Modifies self.menu_selection. Returns self.'''
@@ -453,5 +438,55 @@ class Scene(object):
                     self.show()
             except ValueError:
                 self.show()
+
+        return self
+
+    def cards_to_images(self, cards: list[Card], data: str='stats'):
+
+        card_images = []
+        # Update to add lines to chara_images instead of new string images in chara_stats
+        for card in cards:
+            card_image = card.image
+            if data == 'stats':
+                stats = card.chara_stats()
+                # print(stats)
+                lines = [
+                    f'{stats[0][0]}:{stats[0][1]} {stats[1][0]}:{stats[1][1]}',
+                    f'{stats[2][0]}:{stats[2][1]} {stats[3][0]}:{stats[3][1]}',
+                    f'{stats[4][0]}:{stats[4][1]} {stats[5][0]}:{stats[5][1]}'
+                ]
+            elif data == 'battle':
+                lines = [
+                    f'{card.name}',
+                    f'HP:{card.hp}/{card.max_hp}',
+                    f'SP:{card.sp}/{card.max_sp}'
+                ]
+            elif data == 'desc':
+                desc1 = card.desc
+                desc2 = ''
+                if len(card.desc) > 20:
+                    desc1 = card.desc[:20]
+                    desc2 = card.desc[20:]
+                lines = [
+                    f'{card.name}',
+                    f'{desc1}',
+                    f'{desc2}'
+                ]
+            for line in lines:
+                print(line)
+                dir = 'back'
+                while len(line) <= 24:
+                    if dir == 'back':
+                        line += ' '
+                        dir = 'front'
+                    elif dir == 'front':
+                        line = f' {line}'
+                        dir = 'back'
+                line = '▌' + line[1:-2] + '▐'
+                card_image += f'\n{line}'
+            card_image += f'\n▓▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▓'
+            card_images.append(card_image)
+
+        self.images = card_images
 
         return self

@@ -1,6 +1,8 @@
 '''
 Single image line-height: 14, characters: 24
 Double image characters: 48
+
+Images in the context of this game refer to multiline ASCII art strings.
 '''
 
 camp_image = '''  
