@@ -10,21 +10,19 @@ class Game():
 
     def game_start(self):
         '''Takes self. calls self.game_loop().'''
-        # Logic No Inputs
-        # Loads party_deck
+        ## Prep
         for hero in chara_sheet.heros:
             self.party_deck.cards.append(Chara(hero))
-        # Begins game_loop()
-        # Scene here with new/load/quit
+        ## Input
         CastleScene = Scene(images=[images.castle_image], text=["Welcome to Card World!"], menu=[
             "Start Game",
             "Quit"
         ]).show()
+        ## Response
         if CastleScene.menu_selection == "Start Game":
             self.game_loop()
         elif CastleScene.menu_selection == "Quit":
             quit()
-        # self.game_loop()
 
     def game_loop(self):
         '''Takes self. Continues until force quite.'''
@@ -75,22 +73,18 @@ class Game():
         # Logic
         # Scenes
         while len(self.stage_deck.cards) > 0 and self.player.hp > 0:
-            # Remove to scene function
+            ## Prep
             DrawStart = Scene(text=[
-                f'{self.player.name} HP: {self.player.hp}/{self.player.max_hp}',
                 f'Player CPs: {self.player.cp}',
                 f'Cards in Stage: {len(self.stage_deck.cards)}',
                 'You draw a card...'
                 ]
-                ).cards_to_images([self.player], 'desc').show()
+                ).cards_to_images([self.player], 'battle').show()
+            ## Input
             card = self.stage_deck.draw_top()
-
+            ## Response
             if isinstance(card, Chara):
                 enemy = card
-                # Remove to scene function
-                # MonsterDraw = Scene(images=[enemy.image], text=[
-                #     f'You drew a Monster: {enemy.name}, {enemy.desc}!'
-                # ]).show()
                 MonasterDraw = Scene().cards_to_images([enemy], 'desc').show()
                 self.player.hp, enemy.hp = self.battle_phase(self.player, enemy)
             elif isinstance(card, Event):
@@ -105,14 +99,17 @@ class Game():
     def camp(self):
         '''Takes self. Modifies self.player. Returns self.'''
         while self.player.cp > 0:
+            ## Prep
             CampScene = Scene(images=[images.camp_image], text=[f"{self.player.name} has {self.player.cp} CPs to spend."],
                               menu=self.player.chara_stats())
             CampScene.menu.append("Leave Camp")
+            ## Input
             CampScene.show()
+            ## Response
             if CampScene.menu_selection == "Leave Camp":
                 break
             tmp = CampScene.menu_selection[0].replace(' ', '_').lower() # Player Stat = player_stat
-            print(tmp)
+            # print(tmp)
             for key, value in vars(self.player).items():
                 # print(key, value)
                 if key == tmp or value == tmp.capitalize():
@@ -157,9 +154,6 @@ class Game():
             # Input
             player_input = None
             while player_input is None:
-                # BattleScene = Scene(images=[player.image, enemy.image], text=[
-                #     f'{player.name} HP: {player.hp}/{player.max_hp}         {enemy.name} HP: {enemy.hp}/{enemy.max_hp}'
-                # ], menu=player.chara_moves()).show()
                 BattleScene = Scene(menu=player.chara_moves()).cards_to_images(cards=[player, enemy], data='battle').show()
                 for key, value in vars(self.player).items():
                     if value == BattleScene.menu_selection[0]: # Takes first index of tuple
@@ -238,10 +232,13 @@ class Game():
         '''Takes self. Modifies self.party_deck and self.player. Returns self.'''
         selected = None
         while selected == None:
+            ## Prep
             chara_menu = []
             for card in self.party_deck.cards:
                 chara_menu.append(f'{card.name}, {card.desc}')
+            ## Input
             CharaSelect = Scene(menu=chara_menu).cards_to_images(self.party_deck.cards).show()
+            ## Response
             for card in self.party_deck.cards:
                 if card.name in CharaSelect.menu_selection:
                     selected = card
@@ -442,7 +439,7 @@ class Scene(object):
         return self
 
     def cards_to_images(self, cards: list[Card], data: str='stats'):
-
+        '''Takes list of Card objects. data str 'stats'/'battle'/'desc'. Modifies self.images. Retruns self.'''
         card_images = []
         # Update to add lines to chara_images instead of new string images in chara_stats
         for card in cards:
@@ -466,7 +463,7 @@ class Scene(object):
                 desc2 = ''
                 if len(card.desc) > 20:
                     desc1 = card.desc[:20]
-                    desc2 = card.desc[20:]
+                    desc2 = card.desc[20:40]
                 lines = [
                     f'{card.name}',
                     f'{desc1}',
@@ -485,8 +482,11 @@ class Scene(object):
                 line = '▌' + line[1:-2] + '▐'
                 card_image += f'\n{line}'
             card_image += f'\n▓▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▓'
+            buffer = ''
+            for i in range(20):
+                buffer += '\n '
+            card_images.append(buffer)
             card_images.append(card_image)
-
         self.images = card_images
 
         return self
