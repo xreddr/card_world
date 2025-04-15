@@ -86,7 +86,7 @@ class Player(object):
         for a in vars(self):
             if str(a) == str(attr):
                 if getattr(self, a) == None:
-                    setattr(self, a, clothing.name)
+                    setattr(self, a, clothing)
                     return 1
                 return 0
     def remove(self):
@@ -104,6 +104,14 @@ class Player(object):
             stats.append('barefoot')
 
         return stats
+    def show_outfit(self):
+        for var in vars(self):
+                if "_" in var:
+                    if getattr(self, var) == None:
+                        print(f'{var}: {getattr(self, var)}')
+                    else:
+                        print(f'{var}: {getattr(self, var).name} {getattr(self, var).fastener}')
+        print()
 
 
 def create_deck():
@@ -208,7 +216,18 @@ class Game():
         self.gen_decks()
         self.draw_outfit()
         input()
-
+        self.play_turn(self.player, self.ai)
+        self.player.show_outfit()
+        self.player.stats()
+        self.ai.show_outfit()
+        self.ai.stats()
+        input()
+        self.play_turn(self.ai, self.player)
+        self.player.show_outfit()
+        self.player.stats()
+        self.ai.show_outfit()
+        self.ai.stats()
+        input()
     def gen_decks(self):
         self.player.deck = create_deck()
         self.ai.deck = create_deck()
@@ -243,9 +262,9 @@ class Game():
             while len(player.hand) < 5:
                 player.hand.append(player.deck.draw_top())
 
-            for var in vars(player):
-                if "_" in var:
-                    print(f'{var}: {getattr(player, var)}')
+            # for var in vars(player):
+            #     if "_" in var:
+            #         print(f'{var}: {getattr(player, var)}')
 
             for card in player.hand:
                 if card.type == "Clothing":
@@ -254,7 +273,29 @@ class Game():
                     print(card.name, card.fastener)
 
             print(len(player.deck.stack))
+            player.show_outfit()
             player.stats()
+            print()
+
+    def play_turn(self, player, player2):
+        for card in player.hand:
+            if card.type == "Clothing":
+                if player.add(card) == 1:
+                    player.hand.pop(player.hand.index(card))
+            if card.type == "Action":
+                for var in vars(player2):
+                    if '_' in var:
+                        # print(var)
+                        attr = getattr(player2, var)
+                        # print(var, attr)
+                        if attr is not None:
+                            if attr.fastener == card.fastener:
+                                print(f"{attr.name}'s {attr.fastener} has been removed by {card.name}'s {card.fastener}")
+                                setattr(player2, var, None)
+                                player.hand.pop(player.hand.index(card))
+                                break
+                        else:
+                            continue
 
 Session = Game()
 Session.loop()
