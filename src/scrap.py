@@ -111,7 +111,6 @@ class Player(object):
                         print(f'{var}: {getattr(self, var)}')
                     else:
                         print(f'{var}: {getattr(self, var).name} {getattr(self, var).fastener}')
-        print()
 
 
 def create_deck():
@@ -132,8 +131,7 @@ def create_deck():
             random.choice(clothing_fasteners)
         )
         deck.stack.append(clothing_card)
-        # print(clothing_card)
-        # print(deck.stack)
+
     x = 0
     while x < act_cards:
         action_card = Action(
@@ -143,69 +141,13 @@ def create_deck():
             random.choice(clothing_fasteners)
         )
         deck.stack.append(action_card)
-        # print(action_card)
         x += 1
 
     deck.shuffle()
 
-    # print(deck.stack)
     print(len(deck.stack))
     return deck
 
-def test_hand():
-    deck = create_deck()
-    hand = []
-    n = 10
-    while n > 0:
-        hand.append(deck.draw_top())
-        n -= 1
-    player = Player("Harper")
-    def auto_add_clothing():
-        for card in hand:
-            if card.type == 'Clothing':
-                if player.add(card) == 1:
-                    hand.pop(hand.index(card))
-                # print(card.type,card.layer, card.categorie, card.fastener)
-    auto_add_clothing()
-    full = False
-    while not full and len(deck.stack) > 0:
-        if all(getattr(player, attr) is not None for attr in vars(player)) == False:
-            hand.append(deck.draw_top())
-            auto_add_clothing()
-        else:
-            full = True
-
-    while len(hand) > 0:
-        deck.stack.append(hand.pop())
-    print(len(deck.stack))
-
-    deck.shuffle()
-    print(len(deck.stack))
-    n = 5
-    while n > 0:
-        hand.append(deck.draw_top())
-        n -= 1
-
-    print(json.dumps(vars(player), indent=2))
-    for card in hand:
-        print(card.name, card.type, card.fastener)
-    player.stats()
-
-    print(len(deck.stack))
-
-# test_hand()
-# create_clothing_set()
-
-# class Parent:
-#     def __init__(self, class_name):
-#         print(f"Parent class initialized by: {class_name}")
-
-# class Child(Parent):
-#     def __init__(self):
-#         super().__init__(self.__class__.__name__)
-#         print("Child class initialized")
-
-# obj = Child()
 
 class Game():
     def __init__(self):
@@ -214,25 +156,28 @@ class Game():
     
     def loop(self):
         self.gen_decks()
-        self.draw_outfit()
+        self.draw_outfits()
         input()
-        self.play_turn(self.player, self.ai)
-        self.player.show_outfit()
-        self.player.stats()
-        self.ai.show_outfit()
-        self.ai.stats()
-        input()
-        self.play_turn(self.ai, self.player)
-        self.player.show_outfit()
-        self.player.stats()
-        self.ai.show_outfit()
-        self.ai.stats()
-        input()
+        self.turn_loop()
+
+    def turn_loop(self):
+        while True:
+            self.play_turn(self.player, self.ai)
+            self.player_stats()
+            input()
+            self.play_turn(self.ai, self.player)
+            self.player_stats()
+            x = input()
+            if x == "x":
+                exit()
+            self.player.hand.append(self.player.deck.draw_top())
+            self.ai.hand.append(self.ai.deck.draw_top())
+
     def gen_decks(self):
         self.player.deck = create_deck()
         self.ai.deck = create_deck()
 
-    def draw_outfit(self):
+    def draw_outfits(self):
         players = [self.player, self.ai]
         for player in players:
 
@@ -262,20 +207,26 @@ class Game():
             while len(player.hand) < 5:
                 player.hand.append(player.deck.draw_top())
 
-            # for var in vars(player):
-            #     if "_" in var:
-            #         print(f'{var}: {getattr(player, var)}')
 
-            for card in player.hand:
-                if card.type == "Clothing":
-                    print(card.name, card.layer, card.categorie, card.fastener)
-                else:
-                    print(card.name, card.fastener)
 
             print(len(player.deck.stack))
+
+        self.player_stats()
+
+    def player_stats(self):
+        players = [self.player, self.ai]
+        for player in players:
             player.show_outfit()
+            self.show_hand(player)
             player.stats()
             print()
+
+    def show_hand(self, player):
+        for card in player.hand:
+            if card.type == "Clothing":
+                print(card.name, card.layer, card.categorie, card.fastener)
+            else:
+                print(card.name, card.fastener)
 
     def play_turn(self, player, player2):
         for card in player.hand:
